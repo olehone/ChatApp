@@ -1,9 +1,19 @@
-namespace ChatApp.API.Models;
+using System.ComponentModel.DataAnnotations;
 
-public class ChatMessage
+namespace ChatApp.API.Models
 {
-    public int Id { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public class ChatMessage
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(50, MinimumLength = 2)]
+        public string Username { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(500, MinimumLength = 1)]
+        public string Message { get; set; } = string.Empty;
+
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    }
 }
