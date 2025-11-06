@@ -1,9 +1,9 @@
-using ChatApp.API.Data;
-using ChatApp.API.Models;
+using ChatApp.Data;
+using ChatApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace ChatApp.API.Controllers;
+namespace ChatApp.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

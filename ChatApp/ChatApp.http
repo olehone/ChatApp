@@ -1,0 +1,5 @@
+@ChatApp_sHostAddress = http://localhost:5216
+
+GET {{ChatApp_HostAddress}}/api/
+Accept: application/json
+

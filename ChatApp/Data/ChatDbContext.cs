@@ -1,7 +1,7 @@
-using ChatApp.API.Models;
+using ChatApp.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace ChatApp.API.Data;
+namespace ChatApp.Data;
 
 public class ChatDbContext : DbContext
 {
