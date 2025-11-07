@@ -22,7 +22,7 @@ public class ChatController : ControllerBase
     public async Task<ActionResult<IEnumerable<ChatMessage>>> GetMessages()
     {
         _logger.LogInformation("Fetching all chat messages...");
-        var messages = await _context.ChatMessages.OrderByDescending(m => m.Timestamp).ToListAsync();
+        var messages = await _context.ChatMessages.OrderBy(m => m.Timestamp).ToListAsync();
         return Ok(messages);
     }
 

@@ -33,40 +33,58 @@
     <div id="messages"></div>
 
     <script>
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl("/chathub")
-      .withAutomaticReconnect()
-      .build();
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .withAutomaticReconnect()
+            .build();
 
-    connection.on("ReceiveMessage", function (data) {
-      addMessage(data);
-    });
+        connection.on("ReceiveMessage", function (data) {
+            addMessage(data);
+        });
 
-    connection.start()
-      .then(() => console.log("Connected to SignalR"))
-      .catch(err => console.error(err));
+        connection.start()
+            .then(() => {
+                console.log("Connected to SignalR");
+                loadMessages();
+            })
+            .catch(err => console.error(err));
 
-    async function sendMessage() {
-      const username = document.getElementById('usernameInput').value;
-      const message = document.getElementById('messageInput').value;
+        async function sendMessage() {
+            const username = document.getElementById('usernameInput').value;
+            const message = document.getElementById('messageInput').value;
 
-      try {
-        await connection.invoke("SendMessage", username, message);
-        document.getElementById('messageInput').value = '';
-      } catch (err) {
-        console.error(err);
-      }
-    }
+            if (!username || !message.trim()) return;
 
-    function addMessage(data) {
-      const container = document.getElementById('messages');
-      const div = document.createElement('div');
-      div.className = 'message';
-      div.innerHTML = `<b>${data.username}</b>: ${data.message}
-        <span style="color:gray;">(${new Date(data.timestamp).toLocaleTimeString()})</span>`;
-      container.appendChild(div);
-      container.scrollTop = container.scrollHeight;
-    }
+            try {
+                await connection.invoke("SendMessage", username, message);
+                document.getElementById('messageInput').value = '';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadMessages() {
+            try {
+                const res = await fetch("/api/chat/messages");
+                if (!res.ok) throw new Error("Failed to fetch messages");
+                const data = await res.json();
+
+                document.getElementById('messages').innerHTML = '';
+                data.forEach(addMessage);
+            } catch (err) {
+                console.error("Error loading messages:", err);
+            }
+        }
+
+        function addMessage(data) {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.innerHTML = `<b>${data.username}</b>: ${data.message}
+          <span style="color:gray;">(${new Date(data.timestamp).toLocaleTimeString()})</span>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
     </script>
 </body>
 </html>
