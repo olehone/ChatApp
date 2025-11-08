@@ -20,13 +20,13 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING")
+    var connectionString = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")
         ?? throw new Exception("Database connection string not found.");
 
     builder.Services.AddDbContext<ChatDbContext>(options =>
         options.UseSqlServer(connectionString));
 }
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -50,5 +50,5 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/chathub");
-
+app.UseStaticFiles();
 app.Run();
