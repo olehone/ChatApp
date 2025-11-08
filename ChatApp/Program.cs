@@ -1,13 +1,27 @@
+using Azure.Identity;
 using ChatApp.Models;
 using ChatApp.Data;
 using ChatApp.Hubs;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-var environment = "Development"; // "Production" 
-builder.Environment.EnvironmentName = environment;
+
+var environment = builder.Environment;
+
+if (!environment.IsDevelopment())
+{
+    var keyVaultName = builder.Configuration["KeyVaultName"];
+    if (string.IsNullOrWhiteSpace(keyVaultName))
+        throw new Exception("KeyVaultName not configured in App Settings or Environment Variables.");
+
+    var keyVaultUri = new Uri($"https://{keyVaultName}.vault.azure.net/");
+    builder.Configuration.AddAzureKeyVault(keyVaultUri, new DefaultAzureCredential());
+}
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddLogging(config =>
 {
@@ -15,46 +29,39 @@ builder.Services.AddLogging(config =>
     config.AddDebug();
 });
 
-builder.Services.AddSignalR();
-
-if (builder.Environment.IsDevelopment())
+if (environment.IsDevelopment())
 {
     builder.Services.AddDbContext<ChatDbContext>(options =>
         options.UseInMemoryDatabase("ChatAppDb"));
 }
 else
 {
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new Exception("No connection string found in Key Vault or App Configuration.");
+
     builder.Services.AddDbContext<ChatDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        options.UseSqlServer(connectionString));
 }
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    using (var scope = app.Services.CreateScope())
-    {
-        var db = scope.ServiceProvider.GetRequiredService<ChatDbContext>();
-        db.ChatMessages.Add(new ChatMessage { Username = "System", Message = "Hello!" });
-        db.ChatMessages.Add(new ChatMessage { Username = "System", Message = "Wellcome to chat room!" });
-        db.SaveChanges();
 
-    }
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ChatDbContext>();
+    db.ChatMessages.AddRange(
+        new ChatMessage { Username = "System", Message = "Hello!" },
+        new ChatMessage { Username = "System", Message = "Welcome to chat room!" }
+    );
+    db.SaveChanges();
 }
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/chathub");
-
-
-app.UsePathBase("/swagger");
 app.UseStaticFiles();
-
 app.Run();
