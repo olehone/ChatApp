@@ -13,47 +13,20 @@ builder.Services.AddLogging(config =>
 });
 builder.Services.AddSignalR();
 
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddDbContext<ChatDbContext>(options =>
-        options.UseInMemoryDatabase("ChatAppDb"));
-}
-else
-{
-    var connectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING")
-        ?? throw new Exception("Database connection string not found.");
+var connectionString = Environment.GetEnvironmentVariable("SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING")
+    ?? throw new Exception("Database connection string not found.");
 
-    builder.Services.AddDbContext<ChatDbContext>(options =>
-        options.UseSqlServer(connectionString));
-}
-
+builder.Services.AddDbContext<ChatDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// if tables don't exists in prod
-if (!app.Environment.IsDevelopment())
-{
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<ChatDbContext>();
-    db.Database.Migrate(); 
-}
 
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<ChatDbContext>();
-    db.ChatMessages.AddRange(
-        new ChatMessage { Username = "System", Message = "Hello!" },
-        new ChatMessage { Username = "System", Message = "Welcome to the chat room!" }
-    );
-    db.SaveChanges();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
