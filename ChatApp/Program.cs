@@ -33,6 +33,15 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// if tables don't exists in prod
+if (!app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ChatDbContext>();
+    db.Database.Migrate(); 
+}
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
