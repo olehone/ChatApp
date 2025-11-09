@@ -1,59 +1,48 @@
-using Azure;
-using Azure.AI.TextAnalytics;
-using ChatApp.Data;
-using ChatApp.Models;
+using ChatApp.Services;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 
 namespace ChatApp.Hubs;
 
 public class ChatHub : Hub
 {
-    private readonly ChatDbContext _context;
+    private readonly IChatService _chatService;
     private readonly ILogger<ChatHub> _logger;
-    private readonly TextAnalyticsClient _textClient;
 
-    public ChatHub(ChatDbContext context, ILogger<ChatHub> logger, IConfiguration config)
+    public ChatHub(IChatService chatService, ILogger<ChatHub> logger)
     {
-        _context = context;
+        _chatService = chatService;
         _logger = logger;
-
-        var endpoint = config["AzureAI:TextAnalyticsEndpoint"]
-            ?? throw new InvalidOperationException("Missing AzureAI:TextAnalyticsEndpoint configuration.");
-
-        var key = config["AzureAI:TextAnalyticsKey"]
-            ?? throw new InvalidOperationException("Missing AzureAI:TextAnalyticsKey configuration.");
-
-        _textClient = new TextAnalyticsClient(new Uri(endpoint), new AzureKeyCredential(key));
     }
 
-    public async Task SendMessage(string username, string message)
+    public async Task SendMessage(string displayName, string message)
     {
-        var chatMessage = new ChatMessage
+        try
         {
-            Username = username,
-            Message = message,
-            Timestamp = DateTime.UtcNow
-        };
+            // Get userId if authenticated, null if anonymous
+            var userId = Context.User?.Identity?.IsAuthenticated == true
+                ? Context.UserIdentifier
+                : null;
 
-        var sentimentResult = await _textClient.AnalyzeSentimentAsync(message);
-        var sentiment = sentimentResult.Value.Sentiment.ToString();
+            // Save message with sentiment analysis
+            var chatMessage = await _chatService.SaveMessageAsync(message, displayName, userId);
 
-        chatMessage.Sentiment = sentiment;
+            // Broadcast to all clients
+            await Clients.All.SendAsync("ReceiveMessage", new
+            {
+                id = chatMessage.Id,
+                displayName = chatMessage.DisplayName,
+                message = chatMessage.Message,
+                timestamp = chatMessage.Timestamp,
+                sentiment = chatMessage.Sentiment,
+                isAnonymous = chatMessage.IsAnonymous
+            });
 
-        _context.ChatMessages.Add(chatMessage);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Saved message {Id} from {User} with sentiment {Sentiment}",
-            chatMessage.Id, username, sentiment);
-
-        await Clients.All.SendAsync("ReceiveMessage", new
+            _logger.LogDebug("Message broadcasted: {Id}", chatMessage.Id);
+        }
+        catch (Exception ex)
         {
-            id = chatMessage.Id,
-            username = chatMessage.Username,
-            message = chatMessage.Message,
-            timestamp = chatMessage.Timestamp,
-            sentiment
-        });
+            _logger.LogError(ex, "Error in SendMessage");
+            throw;
+        }
     }
 }

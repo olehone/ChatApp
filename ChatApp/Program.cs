@@ -1,11 +1,15 @@
-using ChatApp.Models;
 using ChatApp.Data;
 using ChatApp.Hubs;
-using Microsoft.EntityFrameworkCore;
+using ChatApp.Models;
+using ChatApp.Options;
+using ChatApp.Services;
 using Microsoft.Azure.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<TextAnalyticsOptions>(
+    builder.Configuration.GetSection(TextAnalyticsOptions.SectionName));
 
 builder.Services.AddControllers();
 builder.Services.AddLogging(config =>
@@ -30,6 +34,9 @@ builder.Services.AddDbContext<ChatDbContext>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<ISentimentAnalysisService, SentimentAnalysisService>();
+
 
 var app = builder.Build();
 
