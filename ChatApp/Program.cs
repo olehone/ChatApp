@@ -6,6 +6,7 @@ using Microsoft.Azure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.AddControllers();
 builder.Services.AddLogging(config =>
 {
@@ -13,10 +14,15 @@ builder.Services.AddLogging(config =>
     config.AddDebug();
 });
 
-builder.Services.AddSignalR().AddAzureSignalR();
+builder.Services.AddSignalR().AddAzureSignalR(options =>
+{
+    options.ConnectionString = builder.Configuration["Azure__SignalR__ConnectionString"]
+        ?? throw new Exception("SignalR connection string not found.");
+});
+
 
 var connectionString =
-    Environment.GetEnvironmentVariable("SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING")
+    builder.Configuration["SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING"]
     ?? throw new Exception("Database connection string not found.");
 
 builder.Services.AddDbContext<ChatDbContext>(options =>
@@ -32,6 +38,7 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();

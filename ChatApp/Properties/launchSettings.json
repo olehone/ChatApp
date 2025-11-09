@@ -1,0 +1,31 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:5234",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Azure__SignalR__ConnectionString": "",
+        "SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING": "",
+        "AZURE_TEXT_ANALYTICS_KEY": "",
+        "AZURE_TEXT_ANALYTICS_ENDPOINT": ""
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7227;http://localhost:5234",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Azure__SignalR__ConnectionString": "",
+        "SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING": "",
+        "AZURE_TEXT_ANALYTICS_KEY": "",
+        "AZURE_TEXT_ANALYTICS_ENDPOINT": ""
+      }
+    }
+  }
+}
