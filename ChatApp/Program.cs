@@ -28,32 +28,46 @@ builder.Services.AddSignalR().AddAzureSignalR(options =>
 var connectionString = builder.Configuration.GetConnectionString("AzureSql")
     ?? throw new Exception("Database connection string not found.");
 
-
 builder.Services.AddDbContext<ChatDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.Configure<TextAnalyticsOptions>(options =>
+{
+    builder.Configuration.GetSection("TextAnalytics").Bind(options);
+
+    var envKey = builder.Configuration["AzureAI:TextAnalyticsKey"];
+    var envEndpoint = builder.Configuration["AzureAI:TextAnalyticsEndpoint"];
+
+    if (!string.IsNullOrEmpty(envKey)) options.Key = envKey;
+    if (!string.IsNullOrEmpty(envEndpoint)) options.Endpoint = envEndpoint;
+});
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+}
+
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<ISentimentAnalysisService, SentimentAnalysisService>();
 
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseAuthorization();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-    endpoints.MapHub<ChatHub>("/chathub");
-});
+app.MapControllers();
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();

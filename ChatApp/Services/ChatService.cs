@@ -20,23 +20,22 @@ public class ChatService : IChatService
         _logger = logger;
     }
 
-    public async Task<ChatMessage> SaveMessageAsync(string message, string displayName, string? userId)
+    public async Task<ChatMessage> SaveMessageAsync(string username, string message)
     {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            throw new ArgumentException("Username cannot be empty", nameof(username));
+        }
+
         if (string.IsNullOrWhiteSpace(message))
         {
             throw new ArgumentException("Message cannot be empty", nameof(message));
         }
 
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            throw new ArgumentException("Display name cannot be empty", nameof(displayName));
-        }
-
         var chatMessage = new ChatMessage
         {
+            Username = username,
             Message = message,
-            DisplayName = displayName,
-            UserId = userId,
             Timestamp = DateTime.UtcNow
         };
 
@@ -55,8 +54,8 @@ public class ChatService : IChatService
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
-            "Message saved: Id={Id}, User={DisplayName}, IsAnonymous={IsAnon}, Sentiment={Sentiment}",
-            chatMessage.Id, displayName, chatMessage.IsAnonymous, chatMessage.Sentiment ?? "N/A");
+            "Message saved: Id={Id}, User={Username}, Sentiment={Sentiment}",
+            chatMessage.Id, username, chatMessage.Sentiment ?? "N/A");
 
         return chatMessage;
     }

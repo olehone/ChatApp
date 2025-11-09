@@ -1,4 +1,5 @@
-﻿namespace ChatApp.Options;
+﻿
+namespace ChatApp.Options;
 
 public class TextAnalyticsOptions
 {

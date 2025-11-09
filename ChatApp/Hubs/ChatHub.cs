@@ -14,27 +14,21 @@ public class ChatHub : Hub
         _logger = logger;
     }
 
-    public async Task SendMessage(string displayName, string message)
+    public async Task SendMessage(string username, string message)
     {
         try
         {
-            // Get userId if authenticated, null if anonymous
-            var userId = Context.User?.Identity?.IsAuthenticated == true
-                ? Context.UserIdentifier
-                : null;
-
             // Save message with sentiment analysis
-            var chatMessage = await _chatService.SaveMessageAsync(message, displayName, userId);
+            var chatMessage = await _chatService.SaveMessageAsync(username, message);
 
             // Broadcast to all clients
             await Clients.All.SendAsync("ReceiveMessage", new
             {
                 id = chatMessage.Id,
-                displayName = chatMessage.DisplayName,
+                username = chatMessage.Username,
                 message = chatMessage.Message,
                 timestamp = chatMessage.Timestamp,
-                sentiment = chatMessage.Sentiment,
-                isAnonymous = chatMessage.IsAnonymous
+                sentiment = chatMessage.Sentiment
             });
 
             _logger.LogDebug("Message broadcasted: {Id}", chatMessage.Id);
