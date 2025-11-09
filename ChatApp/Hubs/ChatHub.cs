@@ -1,17 +1,29 @@
+using Azure;
+using Azure.AI.TextAnalytics;
 using ChatApp.Data;
 using ChatApp.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace ChatApp.Hubs;
+
 public class ChatHub : Hub
 {
     private readonly ChatDbContext _context;
     private readonly ILogger<ChatHub> _logger;
+    private readonly TextAnalyticsClient _textClient;
 
-    public ChatHub(ChatDbContext context, ILogger<ChatHub> logger)
+    public ChatHub(ChatDbContext context, ILogger<ChatHub> logger, IConfiguration config)
     {
         _context = context;
         _logger = logger;
+
+        var endpoint = config["AZURE_TEXT_ANALYTICS_ENDPOINT"]
+            ?? throw new Exception("Missing Text Analytics endpoint.");
+        var key = config["AZURE_TEXT_ANALYTICS_KEY"]
+            ?? throw new Exception("Missing Text Analytics key.");
+
+        _textClient = new TextAnalyticsClient(new Uri(endpoint), new AzureKeyCredential(key));
     }
 
     public async Task SendMessage(string username, string message)
@@ -23,23 +35,24 @@ public class ChatHub : Hub
             Timestamp = DateTime.UtcNow
         };
 
+        var sentimentResult = await _textClient.AnalyzeSentimentAsync(message);
+        var sentiment = sentimentResult.Value.Sentiment.ToString();
+
+        chatMessage.Sentiment = sentiment;
+
         _context.ChatMessages.Add(chatMessage);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Saved message {Id} from {User}", chatMessage.Id, username);
+        _logger.LogInformation("Saved message {Id} from {User} with sentiment {Sentiment}",
+            chatMessage.Id, username, sentiment);
 
         await Clients.All.SendAsync("ReceiveMessage", new
         {
             id = chatMessage.Id,
             username = chatMessage.Username,
             message = chatMessage.Message,
-            timestamp = chatMessage.Timestamp
+            timestamp = chatMessage.Timestamp,
+            sentiment
         });
-    }
-
-    public override async Task OnConnectedAsync()
-    {
-        _logger.LogInformation("Client connected: {ConnId}", Context.ConnectionId);
-        await base.OnConnectedAsync();
     }
 }

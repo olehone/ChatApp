@@ -13,6 +13,6 @@ public class ChatMessage
     [Required]
     [StringLength(500, MinimumLength = 1)]
     public string Message { get; set; } = string.Empty;
-
+    public string Sentiment { get; set; } = "Unknown";
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }
