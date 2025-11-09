@@ -16,12 +16,12 @@ builder.Services.AddLogging(config =>
 
 builder.Services.AddSignalR().AddAzureSignalR(options =>
 {
-    options.ConnectionString = builder.Configuration["Azure__SignalR__ConnectionString"]
+    options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalR")
         ?? throw new Exception("SignalR connection string not found.");
 });
 
 
-var connectionString = builder.Configuration["SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING"]
+var connectionString = builder.Configuration.GetConnectionString("AzureSql")
     ?? throw new Exception("Database connection string not found.");
 
 

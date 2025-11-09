@@ -18,10 +18,11 @@ public class ChatHub : Hub
         _context = context;
         _logger = logger;
 
-        var endpoint = config["AZURE_TEXT_ANALYTICS_ENDPOINT"]
-            ?? throw new Exception("Missing Text Analytics endpoint.");
-        var key = config["AZURE_TEXT_ANALYTICS_KEY"]
-            ?? throw new Exception("Missing Text Analytics key.");
+        var endpoint = config["AzureAI:TextAnalyticsEndpoint"]
+            ?? throw new InvalidOperationException("Missing AzureAI:TextAnalyticsEndpoint configuration.");
+
+        var key = config["AzureAI:TextAnalyticsKey"]
+            ?? throw new InvalidOperationException("Missing AzureAI:TextAnalyticsKey configuration.");
 
         _textClient = new TextAnalyticsClient(new Uri(endpoint), new AzureKeyCredential(key));
     }
