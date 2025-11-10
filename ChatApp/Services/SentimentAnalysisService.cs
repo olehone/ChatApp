@@ -18,27 +18,31 @@ public class SentimentAnalysisService : ISentimentAnalysisService
         _logger = logger;
         var config = options.Value;
         _enabled = config.Enabled;
-
-        if (_enabled && !string.IsNullOrEmpty(config.Endpoint) && !string.IsNullOrEmpty(config.Key))
+        if (!_enabled)
         {
-            try
-            {
-                _client = new TextAnalyticsClient(
-                    new Uri(config.Endpoint),
-                    new AzureKeyCredential(config.Key));
-                _logger.LogInformation("Sentiment analysis service initialized successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to initialize sentiment analysis client. Service will be disabled.");
-                _enabled = false;
-            }
+            _logger.LogWarning("Sentiment analysis is disabled");
+            return;
         }
-        else
+        if (string.IsNullOrEmpty(config.Endpoint) || string.IsNullOrEmpty(config.Key))
         {
-            _logger.LogWarning("Sentiment analysis is disabled or not configured");
+            _logger.LogError("Sentiment analysis is not configured but enabled");
+            _enabled = false;
+            return;
+        }
+
+        try
+        {
+            _client = new TextAnalyticsClient(
+                new Uri(config.Endpoint),
+                new AzureKeyCredential(config.Key));
+            _logger.LogInformation("Sentiment analysis service initialized successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize sentiment analysis client. Service will be disabled.");
             _enabled = false;
         }
+
     }
 
     public async Task<string?> AnalyzeSentimentAsync(string text)

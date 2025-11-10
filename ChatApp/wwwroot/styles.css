@@ -68,30 +68,34 @@ body {
     display: inline-block;
     padding: 3px 8px;
     border-radius: 4px;
-    font-size: 0.85em;
-    font-weight: 700;
+    font-size: 1.2em;
+    font-weight: 600;
     margin-left: 8px;
+    background: #ffff80;
 }
 
     .sentiment.Positive {
-        background: #c8e6c9;
-        color: #2e7d32;
+        background: #dcedc8;
+        color: #33691e;
     }
 
     .sentiment.Negative {
-        background: #ffcdd2;
+        background: #ffebee;
         color: #c62828;
     }
 
     .sentiment.Neutral {
-        background: #e0e0e0;
-        color: #616161;
+        background: #eeeeee;
+        color: #424242;
     }
 
     .sentiment.Mixed {
-        background: #ffe0b2;
-        color: #e65100;
+        background: #fff3e0;
+        color: #b34700;
     }
+
+
+
 
 .chat-input {
     display: flex;

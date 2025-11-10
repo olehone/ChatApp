@@ -66,13 +66,23 @@ function addMessage(data) {
     container.scrollTop = container.scrollHeight;
 }
 
-
+//i like the idea
 function getUsernameColor(username) {
+    const specialColors = {
+        "Anonymous": "gray",
+        "Admin": "red",
+        "Oleh": "green",
+    };
+
+    if (specialColors[username]) {
+        return specialColors[username];
+    }
+
     let hash = 0;
     for (let i = 0; i < username.length; i++) {
         hash = username.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const h = hash % 360;
+    const h = Math.abs(hash) % 360;
     return `hsl(${h}, 70%, 50%)`;
 }
 

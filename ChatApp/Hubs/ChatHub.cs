@@ -18,7 +18,6 @@ public class ChatHub : Hub
     {
         try
         {
-            // Save message with sentiment analysis
             var chatMessage = await _chatService.SaveMessageAsync(username, message);
 
             // Broadcast to all clients
@@ -36,7 +35,8 @@ public class ChatHub : Hub
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in SendMessage");
-            throw;
+            throw new InvalidOperationException(
+            $"Failed to send message for user '{username}'. See inner exception for details.", ex);
         }
     }
 }
