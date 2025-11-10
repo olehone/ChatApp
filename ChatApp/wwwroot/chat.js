@@ -48,6 +48,8 @@ function addMessage(data) {
     const div = document.createElement('div');
     div.className = 'message';
 
+    const usernameColor = getUsernameColor(data.username);
+
     let sentimentBadge = '';
     if (data.sentiment) {
         sentimentBadge = `<span class="sentiment ${data.sentiment}">${data.sentiment}</span>`;
@@ -55,7 +57,7 @@ function addMessage(data) {
 
     div.innerHTML = `
         <div class="message-header">
-            <span class="username">${escapeHtml(data.username)}</span>
+            <span class="username" style="color: ${usernameColor}">${escapeHtml(data.username)}</span>
             <span class="timestamp">${new Date(data.timestamp).toLocaleTimeString()} ${sentimentBadge}</span>
         </div>
         <div class="message-text">${escapeHtml(data.message)}</div>
@@ -63,6 +65,17 @@ function addMessage(data) {
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
 }
+
+
+function getUsernameColor(username) {
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const h = hash % 360;
+    return `hsl(${h}, 70%, 50%)`;
+}
+
 
 function escapeHtml(text) {
     const div = document.createElement('div');

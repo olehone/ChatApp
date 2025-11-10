@@ -41,6 +41,7 @@ builder.Services.Configure<TextAnalyticsOptions>(options =>
 
     if (!string.IsNullOrEmpty(envKey)) options.Key = envKey;
     if (!string.IsNullOrEmpty(envEndpoint)) options.Endpoint = envEndpoint;
+    options.Enabled = !string.IsNullOrEmpty(options.Key) && !string.IsNullOrEmpty(options.Endpoint);
 });
 
 if (builder.Environment.IsDevelopment())
